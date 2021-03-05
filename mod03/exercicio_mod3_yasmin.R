@@ -15,6 +15,8 @@ teste1<- aov(lobo_frontal~especie + sexo, tabela)
 summary(teste1)
 #Resultados
 plot(teste1)
+boxplot(lobo_frontal~especie, data = tabela)
+boxplot(lobo_frontal~sexo, data = tabela)
 
 #Analise de variancia variacao em função da interacao especie e sexo
 teste2<- aov(lobo_frontal~especie:sexo, tabela)  
