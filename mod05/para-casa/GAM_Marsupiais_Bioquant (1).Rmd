@@ -1,0 +1,117 @@
+---
+title: "GAM_Marsupiais_Bioquant"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+#####INICIO#####
+#Baixar e carregar os pacotes necessários para a análise
+```{r}
+install.packages("robustbase")
+install.packages("RCurl")
+library(robustbase)
+library(RCurl)
+```
+```{r}
+data(possumDiv, package="robustbase")
+View(possum.mat)
+View(possumDiv)
+
+```
+
+Criar plot de correlação entre as variaveis independentes
+```{r}
+attach(possumDiv)
+names(possumDiv)
+Var_indep <-cbind(Diversity,Shrubs,Stumps,Stags,Bark,Habitat,BAcacia,eucalyptus,aspect)
+pairs(Var_indep)
+
+```
+Adicionar coeficientes de correlação no gráfico pairs
+```{r}
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- abs(cor(x, y))
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  txt <- paste0(prefix, txt)
+  if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+  text(0.5, 0.5, txt, cex = cex.cor * r)
+}
+pairs(Var_indep,upper.panel=panel.cor)
+```
+#Existe correlação entre as variaveis? Como simplificar este conjunto?
+R: Sim, existe correlação entre as variaveis: Shrubs e Bark, Stags e Habitat, Habitat e BAcacia.
+Para simplificar estes conjuntos, poderiamos criar uma nova variavel que combinasse as variaveis mais correlacionadas,aproveitando melhor o efeito de interação entre as duas.
+
+Testar se as correlações são significativas
+```{r}
+cor.test(Habitat,BAcacia,method = "pearson")
+cor.test(Shrubs,Bark,method = "pearson")
+cor.test(Stags,Habitat,method = "pearson")
+```
+Todas as correlações são significativas
+
+
+### Qual modelo usar
+R: Usaremos uma regressão linear múltipla.
+```{r}
+reg_multipla <- lm(Diversity~Shrubs+Stumps+Stags+Bark+Habitat+BAcacia+eucalyptus+aspect,data = possumDiv)
+summary(reg_multipla)
+shapiro.test(reg_multipla$residuals)
+```
+
+Variáveis significativas do modelo: Stags, Bark, Habitat e Aspect
+
+O teste de normalidade dos resíduos indicou que o valor de p não é significativo, ou seja, a distribuição dos residuos é normal.
+
+#Qual a porcentagem de variancia total (r2) explicada pelo modelo?
+
+Multiple R-squared:  0.4373,	Adjusted R-squared:  0.4139 
+F-statistic: 18.66 on 6 and 144 DF,  p-value: 5.569e-16
+
+R: 41% da variância total é explicada pelo modelo.
+
+#E qual a porcentagem da variância explicada por cada variável independete?
+```{r}
+lm_stags <- lm(Diversity~Stags,data = possumDiv)
+summary(lm_stags)
+
+lm_bark <-lm(Diversity~Bark,data = possumDiv)
+summary(lm_bark)
+
+lm_habitat <- lm(Diversity~Habitat,data = possumDiv)
+summary(lm_habitat)
+
+lm_aspect <- lm(Diversity~aspect,data = possumDiv)
+summary(lm_aspect)
+
+```
+#Por Stags: 26%
+Multiple R-squared:  0.266,	Adjusted R-squared:  0.2611 
+F-statistic:    54 on 1 and 149 DF,  p-value: 1.224e-11
+
+#Por Bark: 11%
+Multiple R-squared:  0.1129,	Adjusted R-squared:  0.107 
+F-statistic: 18.97 on 1 and 149 DF,  p-value: 2.462e-05
+
+#Por Habitat: 24%
+Multiple R-squared:  0.2418,	Adjusted R-squared:  0.2367 
+F-statistic: 47.52 on 1 and 149 DF,  p-value: 1.437e-10
+
+#Por aspect: 0,4%
+Multiple R-squared:  0.02422,	Adjusted R-squared:  0.004303 
+F-statistic: 1.216 on 3 and 147 DF,  p-value: 0.306
+
+
