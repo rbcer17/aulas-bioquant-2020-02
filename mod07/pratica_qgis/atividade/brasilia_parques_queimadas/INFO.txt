@@ -1,0 +1,1 @@
+Dados para o geoprocessamento sobre queimadas em parques de Brasília em 2010 e 2019.
