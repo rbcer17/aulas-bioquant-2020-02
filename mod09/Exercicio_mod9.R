@@ -6,11 +6,21 @@
 install.packages('Rdistance')
 library('Rdistance')
 data(sparrowDetectionData)
-
 # Primeiro vamos corrigir o erro do Valdisney e renomear a coluna para distancia usando a função rename do pacote dplyr
 install.packages('dplyr')
 library('dplyr')
 sparrowDetectionData = rename(sparrowDetectionData, 'distance' = 'sightdist')
+# Aparentemente, Valdisney fez mais erros que o esperado (e não merece ter o nome homenageando alguem que acertou muito)
+# então vamos mudar mais nomes de colunas e criar outras chamadas área, effort e separar os pardais em dois grupos chamados A e B.
+# Também iremos apagar a coluna de siteID que ele criou sem querer.
+# "foi mal gente" Valdisney, 2021
+sparrowDetectionData = rename(sparrowDetectionData, 'Sample.Label' = 'groupsize')
+sparrowDetectionData = subset(sparrowDetectionData, select = -(siteID))
+sparrowDetectionData['Effort'] = 500
+sparrowDetectionData['Area'] = 10000
+Region.Label = rep(c('A', 'B'), each = 178)
+sparrowDetectionData['Region.Label'] = Region.Label
+# Agora é com vocês, calculem a densidade e a abundância observada e estimada para os grupos de pardal (lembrando de desconsideirar as detecções que as distâncias forem maior q 150 m).
 
-# Agora é com vocês, calculem a densidade e a abundância observada e estimada para os grupos de pardal.
+
 
